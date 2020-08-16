@@ -8,7 +8,7 @@ public class Z_Stats : MonoBehaviour
     [Header("Health Settings")]
     public float MaxHealth = 100;
     public float Health;
-    [ReadOnlyRange(0f, 1f)] public float HealthPercentage = 0.5f;
+	[ReadOnlyRange(0f, 1f)] public float HealthPercentage = 0.5f;
 
     [Header("Attack Settings")]
     public float DMG = 5f; //Damage

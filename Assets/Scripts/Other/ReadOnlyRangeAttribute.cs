@@ -20,8 +20,7 @@ public class ReadOnlyRangeDrawer : PropertyDrawer
 {
     private float value;
 
-    public override float GetPropertyHeight(SerializedProperty property,
-                                            GUIContent label)
+    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
         return EditorGUI.GetPropertyHeight(property, label, true);
     }
