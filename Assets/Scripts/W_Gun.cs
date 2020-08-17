@@ -6,13 +6,18 @@ using UnityEngine;
 public class W_Gun : MonoBehaviour
 {
     private float timeSinceLastShot;
+    public int currentAmmo;
+    
     private Input shootButton;
 
     //[Header("Gun Settings")]
     public FireRateTypes FireRate_Type;
     public float FireRate = 1.0f;
     public Transform Fire_Point;
-    public float Damadge = 10f;
+    public float Damage = 10f;
+    public int AmmoPerShot = 1;
+    public int ClipSize = 10;
+    public float ReloadTime = 2.0f;
 
     //[Header("Projectile Settings")]
     public ProjectileTypes Projectile_Type;
@@ -34,6 +39,7 @@ public class W_Gun : MonoBehaviour
 
     void Start()
     {
+        currentAmmo = ClipSize;
     }
 
 	private void OnDrawGizmos()
@@ -50,10 +56,12 @@ public class W_Gun : MonoBehaviour
             
         }
 	}
+    
 
-	// Update is called once per frame
 	void Update()
     {
+
+        //shooting
         timeSinceLastShot += Time.deltaTime;
         if(FireRate_Type == FireRateTypes.Automatic)
         {
@@ -62,7 +70,12 @@ public class W_Gun : MonoBehaviour
         {
             SemiAutomatic(); 
         }
-        
+
+        //reload
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            StartCoroutine("Reload");
+        }        
     
     }
 
@@ -87,21 +100,41 @@ public class W_Gun : MonoBehaviour
 
     void Shoot()
     {
-        RaycastHit hit;
-        if (Projectile_Type == ProjectileTypes.Raycast)
+        if (currentAmmo > 0)
         {
-            if (Physics.Raycast(Fire_Point.position, Fire_Point.TransformDirection(Vector3.forward), out hit, Projectile_Range))
-            {
-                Debug.Log(hit.transform.name);
-                if (hit.transform.GetComponent<Z_Stats>())
-                {
-                    hit.transform.GetComponent<Z_Stats>().Damage(Damadge);
+            currentAmmo -= AmmoPerShot;
 
-                    //Add a hit effect later on
+            RaycastHit hit;
+            if (Projectile_Type == ProjectileTypes.Raycast)
+            {
+                if (Physics.Raycast(Fire_Point.position, Fire_Point.TransformDirection(Vector3.forward), out hit, Projectile_Range))
+                {
+                    Debug.Log(hit.transform.name);
+                    if (hit.transform.GetComponent<Z_Stats>())
+                    {
+                        hit.transform.GetComponent<Z_Stats>().Damage(Damage);
+
+                        //Add a hit effect later on
+                    }
                 }
+            }else
+            {
+                //play sound "no ammo"
             }
         }
     }
+
+
+
+    IEnumerator Reload()
+    {
+        //play reload animation
+        yield return new WaitForSeconds(ReloadTime);
+        currentAmmo = ClipSize;
+        //subtract used ammo from player stash of ammunition
+    }
+
+
 
     public enum FireRateTypes { Automatic, Semi_Automatic }
     public enum ProjectileTypes { Raycast, Prefab }

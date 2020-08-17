@@ -23,9 +23,13 @@ public class GunEditor : Editor
 			gun.FireRate_Type = (W_Gun.FireRateTypes)EditorGUILayout.EnumPopup("FireRate Type", gun.FireRate_Type);
 			gun.FireRate = EditorGUILayout.FloatField(new GUIContent("FireRate", "Minimum time between each shot"), gun.FireRate);
 			gun.Fire_Point = (Transform)EditorGUILayout.ObjectField("Fire Point", gun.Fire_Point, typeof(Transform), true);
-            gun.Damadge = EditorGUILayout.FloatField(new GUIContent("Damadge", "Damadge per shot"), gun.Damadge);
+            gun.Damage = EditorGUILayout.FloatField(new GUIContent("Damage", "Damage per shot"), gun.Damage);
+            gun.AmmoPerShot = EditorGUILayout.IntField(new GUIContent("AmmoPerShot", "Ammunition used per shot"), gun.AmmoPerShot);
+            gun.ClipSize = EditorGUILayout.IntField(new GUIContent("ClipSize", "Maximum bullets loaded"), gun.ClipSize);
+            gun.ReloadTime = EditorGUILayout.FloatField(new GUIContent("ReloadTime", "Time used for gun to reload in seconds"), gun.ReloadTime);
 
-			EditorGUI.indentLevel = 0;
+
+            EditorGUI.indentLevel = 0;
 		}
 
 		showProjectileSettings = EditorGUILayout.Foldout(showProjectileSettings, "Projectile Settings");
