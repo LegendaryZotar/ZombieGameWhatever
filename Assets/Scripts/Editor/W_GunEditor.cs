@@ -21,8 +21,9 @@ public class GunEditor : Editor
 			EditorGUI.indentLevel = 1;
 
 			gun.FireRate_Type = (W_Gun.FireRateTypes)EditorGUILayout.EnumPopup("FireRate Type", gun.FireRate_Type);
-			gun.RPS = EditorGUILayout.FloatField(new GUIContent("RPS", "Rounds Per Second"), gun.RPS);
+			gun.FireRate = EditorGUILayout.FloatField(new GUIContent("FireRate", "Minimum time between each shot"), gun.FireRate);
 			gun.Fire_Point = (Transform)EditorGUILayout.ObjectField("Fire Point", gun.Fire_Point, typeof(Transform), true);
+            gun.Damadge = EditorGUILayout.FloatField(new GUIContent("Damadge", "Damadge per shot"), gun.Damadge);
 
 			EditorGUI.indentLevel = 0;
 		}

@@ -5,10 +5,14 @@ using UnityEngine;
 
 public class W_Gun : MonoBehaviour
 {
+    private float timeSinceLastShot;
+    private Input shootButton;
+
     //[Header("Gun Settings")]
     public FireRateTypes FireRate_Type;
-    public float RPS = 2.5f;
+    public float FireRate = 1.0f;
     public Transform Fire_Point;
+    public float Damadge = 10f;
 
     //[Header("Projectile Settings")]
     public ProjectileTypes Projectile_Type;
@@ -50,6 +54,53 @@ public class W_Gun : MonoBehaviour
 	// Update is called once per frame
 	void Update()
     {
+        timeSinceLastShot += Time.deltaTime;
+        if(FireRate_Type == FireRateTypes.Automatic)
+        {
+            Automatic();
+        }else
+        {
+            SemiAutomatic(); 
+        }
+        
+    
+    }
+
+    void Automatic()
+    {
+        
+        if (Input.GetKey(KeyCode.Mouse0) && timeSinceLastShot >= FireRate)
+        {
+            Shoot();
+            timeSinceLastShot = 0f;
+        }
+        
+    }
+    void SemiAutomatic()
+    {
+        if (Input.GetKeyDown(KeyCode.Mouse0) && timeSinceLastShot >= FireRate)
+        {
+            Shoot();
+            timeSinceLastShot = 0f;
+        }
+    }
+
+    void Shoot()
+    {
+        RaycastHit hit;
+        if (Projectile_Type == ProjectileTypes.Raycast)
+        {
+            if (Physics.Raycast(Fire_Point.position, Fire_Point.TransformDirection(Vector3.forward), out hit, Projectile_Range))
+            {
+                Debug.Log(hit.transform.name);
+                if (hit.transform.GetComponent<Z_Stats>())
+                {
+                    hit.transform.GetComponent<Z_Stats>().Damage(Damadge);
+
+                    //Add a hit effect later on
+                }
+            }
+        }
     }
 
     public enum FireRateTypes { Automatic, Semi_Automatic }

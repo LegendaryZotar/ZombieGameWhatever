@@ -907,7 +907,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FireRate_Type: 1
-  RPS: 4.88
+  FireRate: 1
   Fire_Point: {fileID: 922719326}
   Projectile_Type: 0
   Projectile_Speed: 5
