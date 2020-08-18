@@ -37,7 +37,7 @@ public class GunEditor : Editor
 		{
 			EditorGUI.indentLevel = 1;
 
-			gun.Projectile_Speed = EditorGUILayout.FloatField("Projectile Speed", gun.Projectile_Speed);
+			gun.Projectile_Force = EditorGUILayout.FloatField(new GUIContent("Projectile Force", "Projectile force when shot"), gun.Projectile_Force);
 			gun.Projectile_Range = EditorGUILayout.FloatField("Projectile Range", gun.Projectile_Range);
 			gun.Projectile_Type = (W_Gun.ProjectileTypes)EditorGUILayout.EnumPopup("Projectile Type", gun.Projectile_Type);
 			EditorGUI.indentLevel = 2;

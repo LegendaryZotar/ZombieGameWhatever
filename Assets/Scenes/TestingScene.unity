@@ -906,15 +906,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca33e75464da05940ab91ab09245ae5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentAmmo: 0
   FireRate_Type: 1
   FireRate: 1
   Fire_Point: {fileID: 922719326}
-  Projectile_Type: 0
-  Projectile_Speed: 5
+  Damage: 10
+  AmmoPerShot: 1
+  ClipSize: 10
+  ReloadTime: 2
+  Projectile_Type: 1
+  Projectile_Force: 100
   Projectile_Range: 6.24
   CustomCrossHair: 0
   CrossHair: {fileID: 0}
-  prefab_projectile: {fileID: 0}
+  prefab_projectile: {fileID: 707005543627403759, guid: 2294a7714d7e32a4bb466af122c4845d,
+    type: 3}
   Parent: 0
   prefab_parent: {fileID: 0}
   raycast_Color: {r: 1, g: 0, b: 0, a: 1}
