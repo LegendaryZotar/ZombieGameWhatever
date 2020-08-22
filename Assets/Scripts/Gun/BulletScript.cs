@@ -26,9 +26,9 @@ public class BulletScript : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Debug.Log(other.gameObject.name);
-        if (other.gameObject.GetComponent<Z_Stats>())
+        if (other.gameObject.GetComponent<Z_Controller>())
         {
-            other.gameObject.GetComponent<Z_Stats>().Damage(bDamage);
+            other.gameObject.GetComponent<Z_Controller>().Damage(bDamage);
             //collision effect here
         }
         Destroy(gameObject);
