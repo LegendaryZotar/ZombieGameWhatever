@@ -18,6 +18,7 @@ public class W_Gun : MonoBehaviour
     public int AmmoPerShot = 1;
     public int ClipSize = 10;
     public float ReloadTime = 2.0f;
+    public float Recoil = 5f;
 
     //[Header("Projectile Settings")]
     public ProjectileTypes Projectile_Type;

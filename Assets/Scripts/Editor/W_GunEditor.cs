@@ -27,6 +27,7 @@ public class GunEditor : Editor
             gun.AmmoPerShot = EditorGUILayout.IntField(new GUIContent("AmmoPerShot", "Ammunition used per shot"), gun.AmmoPerShot);
             gun.ClipSize = EditorGUILayout.IntField(new GUIContent("ClipSize", "Maximum bullets loaded"), gun.ClipSize);
             gun.ReloadTime = EditorGUILayout.FloatField(new GUIContent("ReloadTime", "Time used for gun to reload in seconds"), gun.ReloadTime);
+			gun.Recoil = EditorGUILayout.FloatField(new GUIContent("Recoil"), gun.Recoil);
 
 
             EditorGUI.indentLevel = 0;
