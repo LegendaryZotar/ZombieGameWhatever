@@ -15,6 +15,9 @@ public class Z_Controller : MonoBehaviour
 
     public GameObject PlayerTracker;
 
+    [Header("Zombie Settings")]
+    public float Speed;
+
     [Header("Health Settings")]
     public float MaxHealth = 100;
     public float Health;
@@ -28,7 +31,7 @@ public class Z_Controller : MonoBehaviour
 
     [Header("Perception Settings")]
     public float lookRange = 10f; //From how far away he can see the player
-    public float persistensy = 3f; //How long the Zombie will follow the player even when out of sight (in seconds)
+    public float persistency = 3f; //How long the Zombie will follow the player even when out of sight (in seconds)
 
 
     void Start()
@@ -40,6 +43,9 @@ public class Z_Controller : MonoBehaviour
         Health = MaxHealth;
 
         HealthPercentage = Health / MaxHealth;
+
+        agent.speed = Speed;
+        agent.stoppingDistance = AttackRange + 0.2f;
     }
 
     private void Update()
@@ -72,7 +78,7 @@ public class Z_Controller : MonoBehaviour
             }
         }
 
-        if (timeSinceLastSeenPlayer >= persistensy && !Physics.Raycast(transform.position, PlayerTracker.transform.forward, out hit, lookRange))
+        if (timeSinceLastSeenPlayer >= persistency && !Physics.Raycast(transform.position, PlayerTracker.transform.forward, out hit, lookRange))
         {
             playerDetected = false;
         }
@@ -87,15 +93,24 @@ public class Z_Controller : MonoBehaviour
     {
         float distance = Vector3.Distance(target.position, transform.position);
 
-            agent.SetDestination(target.position);
 
+        Debug.Log(distance);
         //Attack the player
-        if (distance <= AttackRange && delay <= 0)
+        if (distance <= AttackRange)
         {
-            target.GetComponent<P_Stats>().Damage(DMG);
+            if (delay <= 0)
+            {
+                target.GetComponent<P_Stats>().Damage(DMG);
+                delay = HitInterval;
+            }
             FaceTarget();
-            delay = HitInterval;
             
+            
+            
+
+        }else
+        {
+            agent.SetDestination(target.position);
         }
     }
 
@@ -125,4 +140,5 @@ public class Z_Controller : MonoBehaviour
         //Die stuff
         Destroy(gameObject);
     }
+
 }
