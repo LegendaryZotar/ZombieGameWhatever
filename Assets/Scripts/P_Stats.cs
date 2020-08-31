@@ -12,7 +12,7 @@ public class P_Stats : MonoBehaviour
     float DamageReduction = 3;
     float SpeedReduction = 2;
     float HealthCapReduction = 1; //Health cap reduction per second
-    ThirdPersonMovement movement;
+    PlayerMovement movement;
 
     [Header("Health Settings")]
     public float MaxHealth = 100;
@@ -39,7 +39,7 @@ public class P_Stats : MonoBehaviour
 
         HealthPercentage = Health / MaxHealth;
 
-        movement = gameObject.GetComponent<ThirdPersonMovement>();
+        movement = gameObject.GetComponent<PlayerMovement>();
     }
 
     private void Update()
@@ -120,8 +120,8 @@ public class P_Stats : MonoBehaviour
         if(InfectionState == 3)
         {
             //slowness
-            movement.DefaultRunSpeed -= SpeedReduction;
-            movement.DefaultWalkSpeed -= SpeedReduction;
+            movement.defaultRunSpeed -= SpeedReduction;
+            movement.defaultWalkSpeed -= SpeedReduction;
             //nausea
             //reduce stamina cap
             //reduce health cap
@@ -131,8 +131,8 @@ public class P_Stats : MonoBehaviour
             //weakness 2
             Damage -= DamageReduction;
             //slowness 2
-            movement.DefaultRunSpeed -= SpeedReduction;
-            movement.DefaultWalkSpeed -= SpeedReduction;
+            movement.defaultRunSpeed -= SpeedReduction;
+            movement.defaultWalkSpeed -= SpeedReduction;
             //nausea 2
             //reduce stamina cap
             //reduce health cap

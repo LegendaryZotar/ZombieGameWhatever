@@ -100,7 +100,7 @@ public class Z_Controller : MonoBehaviour
         {
             if (delay <= 0)
             {
-                target.GetComponent<P_Stats>().Damage(DMG);
+                target.GetComponent<P_Stats>().TakeDamage(DMG);
                 delay = HitInterval;
             }
             FaceTarget();
