@@ -7,98 +7,58 @@ public class CameraFollow : MonoBehaviour
     public float CameraMoveSpeed = 120.0f;
     public GameObject CameraFollowObj;
 
-
     CameraManager CM;
+    PlayerManager PM;
+    float rotX = 0.0f;
 
-    [ReadOnly] public float rotY = 0.0f;
-    public float rotX = 0.0f;
+	#region Singleton
 
+	public static CameraFollow instance;
 
+    private void Awake()
+    {
+        instance = this;
+    }
 
-    void Start()
+	#endregion
+
+	void Start()
     {
         Vector3 rot = transform.localRotation.eulerAngles;
         rotX = rot.x;
-        rotY = rot.y;
-
         CM = CameraManager.instance;
+        PM = PlayerManager.instance;
     }
 
     void Update()
     {
-        Vector3 rot = transform.localRotation.eulerAngles;
-       // Debug.Log(Mathf.Clamp(-1, CM.YClamp.x, CM.YClamp.y));
-        rotY = fix(rot.y);
-		if (Input.GetKeyDown(KeyCode.J))
-		{
-            Debug.Log("a");
-            rotX -= 30;
-		}
-        if (CM.canMove())
+        if (CameraManager.canMove())
         {
-            float mouseX = Input.GetAxis("Mouse X");
+
             float mouseY = Input.GetAxis("Mouse Y");
-
-            //Left and right
-            //rotY += (mouseX * CM.XAimSens * 50f * Time.deltaTime);
-            addRot((mouseY * CM.YSens * 50f * Time.deltaTime), (mouseX * CM.XAimSens * 50f * Time.deltaTime));
-
+            
             //Up and down
-           // rotX -= mouseY * CM.YSens * 50f * Time.deltaTime;
+            rotX -= mouseY *
+                (StateManager.getCameraState() == StateManager.cameraStates.Aiming ? CM.aimSens.y : CM.sens.y)
+                * 50f * Time.deltaTime;
 
-            //rotX = Mathf.Clamp(rotX, CM.YClamp.x, CM.YClamp.y);
 
-            Quaternion localRotation = Quaternion.Euler(rotX, rotY, 0.0f);
-            //Debug.Log(rotX);
+            rotX = (StateManager.getCameraState() == StateManager.cameraStates.Aiming ?
+                Mathf.Clamp(rotX, CM.aimYClamp.x, CM.aimYClamp.y) :
+                Mathf.Clamp(rotX, CM.yClamp.x, CM.yClamp.y));
+
+            PM.player.transform.Rotate(0f, Input.GetAxis("Mouse X") *
+                (StateManager.getCameraState() == StateManager.cameraStates.Aiming ? CM.aimSens.x : CM.sens.x)
+                * Time.deltaTime * 50, 0f);
+
+            Quaternion localRotation = Quaternion.Euler(rotX, PM.player.transform.localEulerAngles.y, 0.0f);
             transform.rotation = localRotation;
         }
     }
 
-    float fix(float f)
-	{
-        if (f > 180)
-		{
-            f -= 360f;
-            return f;
-		}else if(f < -180)
-		{
-            f += 360f;
-            return f;
-		}
-        return f;
-	}
-
-    public void resetRot()
-	{
-        //Debug.Log("Before : X: " + rotX + " Y: " + rotY);
-        Vector3 rot = transform.localRotation.eulerAngles;
-        //Debug.Log("rot: " + rot);
-        rotX = Mathf.Clamp( rot.x > 270 ? rot.x - 360 : rot.x , CM.YClamp.x, CM.YClamp.y);
-        rotY = fix(rot.y);
-        //Debug.Log("After : X: " + rotX + " Y: "+  rotY);
-    }
-
-	private void LateUpdate()
-	{
-        CameraUpdater();
-	}
-
-    public void addRot(float vertical, float horizontal)
-	{
-        float temp1 = rotX;
-        rotX -= vertical;
-        rotY += horizontal;
-
-        float temp2 = rotX;
-        rotY = fix(rotY);
-        rotX = Mathf.Clamp(rotX, CM.YClamp.x, CM.YClamp.y);
-    }
-
-    public Vector2 getRot() { return new Vector2(rotX, rotY); }
-
-    void CameraUpdater()
-	{
-        if (CM.canMove())
+    private void LateUpdate()
+    {
+        if (CameraManager.canMove())
         {
             //Settings camera object to follow
             Transform target = CameraFollowObj.transform;
@@ -107,5 +67,39 @@ public class CameraFollow : MonoBehaviour
             float step = CameraMoveSpeed * Time.deltaTime;
             transform.position = Vector3.MoveTowards(transform.position, target.position, step);
         }
-	}
+    }
+
+
+    Coroutine recoilCoro = null;
+
+    float amount;
+    public void AddRecoil(float amount, float duration, float maxRecoil)
+    {
+        if (recoilCoro != null)
+            StopCoroutine(recoilCoro);
+
+        this.amount = Mathf.Clamp(this.amount + amount, 0, maxRecoil);
+
+        recoilCoro = StartCoroutine(_AddOverTime(duration, (a) => rotX -= a));
+    }
+
+    IEnumerator _AddOverTime(float duration, System.Action<float> aCallback)
+    {
+        float t = 0f;
+        float step = amount / duration;
+
+        while (t < amount)
+        {
+            float add = step * Time.deltaTime;
+            if (add >= amount - t)
+            {
+                aCallback(amount - t);
+                amount -= t;
+                yield break;
+            }
+            aCallback(add);
+            t += add;
+            yield return null;
+        }
+    }
 }

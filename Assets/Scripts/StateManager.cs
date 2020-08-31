@@ -5,53 +5,68 @@ using UnityEngine;
 
 public class StateManager : MonoBehaviour
 {
-    #region Singleton
-
+    
     public static StateManager instance;
 
-    private void Awake()
+	#region Singleton
+
+	private void Awake()
     {
         instance = this;
     }
 
     #endregion
 
-    // Start is called before the first frame update
-    public enum MovementStateTypes { Walking, Running, Still }
-    public enum ViewStateTypes { Normal, Aiming }
+	public enum movementStates { Walking, Running, Still, Crawling }
+    public enum cameraStates { Normal, Aiming }
+    public enum gameStates { Playing, Paused}
 
-    [ReadOnly] public MovementStateTypes MovementState;
-    [ReadOnly] public ViewStateTypes ViewState;
+    [ReadOnly] public movementStates movementState;
+    [ReadOnly] public cameraStates cameraState;
+    [ReadOnly] public gameStates gameState;
 
-    public bool canRun = true;
-    public bool canMove = true;
-    public bool canAim = true;
-
-    CameraManager CM;
-    UIManager UM;
-
-	private void Start()
+    void onCamChangeEvent(cameraStates cameraState)
 	{
-        CM = CameraManager.instance;
-        UM = UIManager.instance;
+        this.cameraState = cameraState;
 	}
+
+    void onMovementChangeEvent(movementStates movementState)
+	{
+        this.movementState = movementState;
+	}
+
+    private void onGameStateChange(gameStates gameState)
+    {
+        this.gameState = gameState;
+    }
+    private void Start()
+	{
+		EventManager.instance.camChangeEvent.AddListener(onCamChangeEvent);
+		EventManager.instance.movementStateChangeEvent.AddListener(onMovementChangeEvent);
+        EventManager.instance.gameStateChangeEvent.AddListener(onGameStateChange);
+    }
 
 	private void Update()
 	{
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            ChangeViewState(ViewStateTypes.Aiming);
+            if (Cursor.lockState == CursorLockMode.Locked)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                EventManager.instance.gameStateChangeEvent.Invoke(gameStates.Paused);
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                EventManager.instance.gameStateChangeEvent.Invoke(gameStates.Playing);
+            }
         }
-        else if (Input.GetMouseButtonUp(1))
-        {
-            ChangeViewState(ViewStateTypes.Normal);
-        }
-    }
+	}
 
-	//Use this to change MovementState, If you can change it'll also return true, if you can't it'll return false.
-	//(Avoid changing the variable directly)
-	//Add "Rules" for moving in here
-	public bool ChangeMovementState(MovementStateTypes state)
+    //Use this to change MovementState, If you can change it'll also return true, if you can't it'll return false.
+    //(Avoid changing the variable directly)
+    //Add "Rules" for moving in here
+    /*public bool ChangeMovementState(MovementStateTypes state)
 	{
 		switch (state)
 		{
@@ -108,9 +123,13 @@ public class StateManager : MonoBehaviour
 			default:
 				return false;
 		}
-	}
+	}*/
 
-    public MovementStateTypes getMovementState() { return MovementState; }
+    public static bool isPaused() { return instance.gameState == gameStates.Paused; }
 
-    public ViewStateTypes getViewState() { return ViewState; }
+	public static movementStates getMovementState() { return instance.movementState; }
+
+    public static cameraStates getCameraState() { return instance.cameraState; }
+
+    public static gameStates getGameState() { return instance.gameState; }
 }

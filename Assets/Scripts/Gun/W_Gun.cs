@@ -10,52 +10,52 @@ public class W_Gun : MonoBehaviour
     
     private Input shootButton;
 
+    GunManager GM;
+
     //[Header("Gun Settings")]
-    public FireRateTypes FireRate_Type;
-    public float FireRate = 1.0f;
-    public Transform Fire_Point;
-    public float Damage = 10f;
-    public int AmmoPerShot = 1;
-    public int ClipSize = 10;
-    public float ReloadTime = 2.0f;
-    public float Recoil = 5f;
+    public FireRateTypes fireRateType;
+    public float fireRate = 1.0f;
+    public float reloadTime = 2.0f;
+    public float recoil = 5f;
+    public Transform firePoint;
+
+    //[Header("Ammo Settings")]
+    public int ammoPerShot = 1;
+    public int clipSize = 10;
 
     //[Header("Projectile Settings")]
-    public ProjectileTypes Projectile_Type;
-    public float Projectile_Force = 100f;
-    public float Projectile_Range = 5f;
+    public ProjectileTypes projectType;
+    public GameObject projectilePrefab;
+    public float projectileForce = 100f;
+    public float projectileRange = 5f;
+    public float damage = 10f;
 
     //[Header("Other Settings")]
-    public bool CustomCrossHair;
-    public Sprite CrossHair;
+    public bool customCrossHairBool;
+    public GunManager.CrossHair customCrossHair;
 
     //ProjectileType_Prefab
-    public GameObject prefab_projectile;
-    public bool Parent;
-    public Transform prefab_parent;
 
     //ProjectileType_Raycast
-    public Color raycast_Color = Color.white;
-    public bool raycast_show;
+    public bool raycastDirection = false;
+    public Color directionColor = Color.white;
 
     void Start()
     {
-        currentAmmo = ClipSize;
+        GM = GunManager.instance;
+
+        currentAmmo = clipSize;
     }
 
 	private void OnDrawGizmos()
 	{
-        Camera cam = Camera.main;
-        if (raycast_show)
+        if (raycastDirection)
         {
-            Gizmos.color = raycast_Color;
-            Ray endPoint = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
-            Gizmos.DrawLine(endPoint.origin, endPoint.origin + endPoint.direction * 10f);
-
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(endPoint.GetPoint(Projectile_Range), 0.1f);
-            
+            Gizmos.color = directionColor;
+            Gizmos.DrawRay(firePoint.position, firePoint.forward * projectileRange);
         }
+
+        Gizmos.color = Color.white;
 	}
     
 
@@ -64,7 +64,7 @@ public class W_Gun : MonoBehaviour
 
         //shooting
         timeSinceLastShot += Time.deltaTime;
-        if(FireRate_Type == FireRateTypes.Automatic)
+        if(fireRateType == FireRateTypes.Automatic)
         {
             Automatic();
         }else
@@ -83,7 +83,7 @@ public class W_Gun : MonoBehaviour
     void Automatic()
     {
         
-        if (Input.GetKey(KeyCode.Mouse0) && timeSinceLastShot >= FireRate)
+        if (Input.GetKey(KeyCode.Mouse0) && timeSinceLastShot >= fireRate)
         {
             Shoot();
             timeSinceLastShot = 0f;
@@ -92,7 +92,7 @@ public class W_Gun : MonoBehaviour
     }
     void SemiAutomatic()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0) && timeSinceLastShot >= FireRate)
+        if (Input.GetKeyDown(KeyCode.Mouse0) && timeSinceLastShot >= fireRate)
         {
             Shoot();
             timeSinceLastShot = 0f;
@@ -103,48 +103,56 @@ public class W_Gun : MonoBehaviour
     {
         if (currentAmmo > 0)
         {
-            currentAmmo -= AmmoPerShot;
-            if (Projectile_Type == ProjectileTypes.Raycast)
+            currentAmmo -= ammoPerShot;
+            if (projectType == ProjectileTypes.Raycast)
             {
                 RaycastShot();
             }
 
-            if (Projectile_Type == ProjectileTypes.Prefab)
+            GameObject bullet = null;
+
+            if (projectType == ProjectileTypes.Prefab)
             {
-                PrefabShot();
+                bullet = PrefabShot();
             }
+
+            EventManager.instance.playerAttemptShootEvent.Invoke(this, EventManager.PlayerAttemptShootEvent.result.SUCCESSFUL, bullet);
+
+            GM.AddRecoil(recoil);
+        }
+        else
+        {
+            EventManager.instance.playerAttemptShootEvent.Invoke(this, EventManager.PlayerAttemptShootEvent.result.FAILED_NOAMMO, null);
+            //play sound "no ammo"
         }
     }
 
     void RaycastShot()
     {
         RaycastHit hit;
-        if (Projectile_Type == ProjectileTypes.Raycast)
-        {
-            if (Physics.Raycast(Fire_Point.position, Fire_Point.TransformDirection(Vector3.forward), out hit, Projectile_Range))
-            {
-                Debug.Log(hit.transform.name);
-                if (hit.transform.GetComponent<Z_Controller>())
-                {
-                    hit.transform.GetComponent<Z_Controller>().Damage(Damage);
 
-                    //Add a hit effect later on
-                }
+        if (Physics.Raycast(firePoint.position, firePoint.TransformDirection(Vector3.forward), out hit, projectileRange))
+        {
+            Debug.Log(hit.transform.name);
+            if (hit.transform.GetComponent<Z_Controller>())
+            {
+                hit.transform.GetComponent<Z_Controller>().Damage(damage);
+
+                //Add a hit effect later on
             }
         }
-        else
-        {
-            //play sound "no ammo"
-        }
+
     }
 
-    void PrefabShot()
+    GameObject PrefabShot()
     {
-        GameObject Bullet = Instantiate(prefab_projectile, Fire_Point.position, Fire_Point.rotation);
+        GameObject Bullet = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
 
-        Bullet.GetComponent<Rigidbody>().velocity = transform.TransformDirection(Vector3.forward * Projectile_Force);
-        Bullet.GetComponent<BulletScript>().bDamage = Damage;
-        Bullet.GetComponent<BulletScript>().bRange = Projectile_Range;
+        Bullet.GetComponent<Rigidbody>().velocity = transform.TransformDirection(Vector3.forward * projectileForce);
+        Bullet.GetComponent<BulletScript>().bDamage = damage;
+        Bullet.GetComponent<BulletScript>().bRange = projectileRange;
+
+        return Bullet;
     }
 
 
@@ -152,8 +160,8 @@ public class W_Gun : MonoBehaviour
     IEnumerator Reload()
     {
         //play reload animation
-        yield return new WaitForSeconds(ReloadTime);
-        currentAmmo = ClipSize;
+        yield return new WaitForSeconds(reloadTime);
+        currentAmmo = clipSize;
         //subtract used ammo from player stash of ammunition
     }
 

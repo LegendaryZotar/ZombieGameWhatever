@@ -9,34 +9,32 @@ public class GunManager : MonoBehaviour
     #region Singleton
 
     public static GunManager instance;
-    public GameObject t;
+
     private void Awake()
     {
         instance = this;
     }
 
-	#endregion
+    #endregion
 
-	public int test;
-    
-    public Image Cross_Hair;
-    public Sprite Default_CrossHair;
-    public Sprite CrossHair;
+    [System.Serializable]
+    public class CrossHair
+	{
+        public Sprite crossHair;
+        public Color tint = Color.white;
+	}
+
+    public CrossHair defaultCrosshair;
+    public CrossHair customCrosshair;
 
     public Transform ActiveAim;
 
-	private void OnDrawGizmos()
+    public float recoilSpeed = 10f;
+    public float recoilLimit = 20f;
+
+    public void AddRecoil(float recoilAmount)
     {
+        //4 is multiplier
+        CameraFollow.instance.AddRecoil(recoilAmount / 4, 1 / recoilSpeed, recoilLimit / 4);
 	}
-
-
-    void Start()
-    {
-        //Cross_Hair.sprite = CrossHair;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-    }
 }

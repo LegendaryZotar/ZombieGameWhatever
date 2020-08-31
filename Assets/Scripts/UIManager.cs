@@ -17,36 +17,27 @@ public class UIManager : MonoBehaviour
 
     #endregion
 
-    public Image Crosshair;
-    public Sprite DefaultCrossHair;
-    public Color DefaultTint = Color.white;
+    public Image crossHair;
+    GunManager GM;
 
     // Start is called before the first frame update
     void Start()
     {
-        setDefaultCrosshair();
-        disableCrosshair();
+        GM = GunManager.instance;
     }
 
-    public void enableCrosshair()
+	private void Update()
 	{
-        Crosshair.enabled = true;
-	}
-
-    public void disableCrosshair()
-	{
-        Crosshair.enabled = false;
-	}
-
-    public void setCrosshair(Sprite crosshair, Color? tint = null)
-	{
-        Crosshair.sprite = crosshair;
-        Crosshair.color = tint == null ? new Color(255f, 255f, 255f, 204f) : tint.Value;
-	}
-
-    public void setDefaultCrosshair()
-	{
-        Crosshair.sprite = DefaultCrossHair;
-        Crosshair.color = DefaultTint;
+		if(StateManager.getCameraState() == StateManager.cameraStates.Aiming)
+		{
+            GunManager.CrossHair ch = GM.customCrosshair.crossHair == null ? GM.defaultCrosshair : GM.customCrosshair;
+            crossHair.sprite = ch.crossHair;
+            crossHair.color = ch.tint;
+            crossHair.enabled = true;
+		}
+		else
+		{
+            crossHair.enabled = false;
+		}
 	}
 }

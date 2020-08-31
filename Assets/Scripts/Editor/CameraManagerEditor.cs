@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine.Experimental.AI;
 
 [CustomEditor(typeof(CameraManager))]
 public class CameraManagerEditor : Editor
@@ -10,30 +11,33 @@ public class CameraManagerEditor : Editor
 	bool showDefaultViewSettings = true;
 	bool showDefaultAdvanced = true;
 
-	bool showAimViewSettings = false;
+	bool showAimViewSettings = true;
 
-	bool showInfo = false;
+	bool showDebugSettings = true;
+
+	bool showInfo = true;
 
 	SerializedProperty YClampProperty;
-	SerializedProperty DistanceToPlayerProperty;
-	SerializedProperty CamDistanceToPlayerProperty;
+	SerializedProperty distanceToPlayerProperty;
+	SerializedProperty camDistanceToPlayerProperty;
+	SerializedProperty canMoveCamProperty;
 
-	SerializedProperty AimExitClampProperty;
-	SerializedProperty AimClampProperty;
-	SerializedProperty LayersToCheckProperty;
+	SerializedProperty aimClampProperty;
+	SerializedProperty layersToCheckProperty;
+
 	private void OnEnable()
 	{
-		DistanceToPlayerProperty = serializedObject.FindProperty("DistanceToPlayer");
+		canMoveCamProperty = serializedObject.FindProperty("canMoveCam");
 
-		LayersToCheckProperty = serializedObject.FindProperty("LayersToCheck");
+		distanceToPlayerProperty = serializedObject.FindProperty("distanceToPlayer");
 
-		YClampProperty = serializedObject.FindProperty("YClamp");
+		layersToCheckProperty = serializedObject.FindProperty("layersToCheck");
 
-		CamDistanceToPlayerProperty = serializedObject.FindProperty("CamDistanceToPlayer");
+		YClampProperty = serializedObject.FindProperty("yClamp");
 
-		AimExitClampProperty = serializedObject.FindProperty("AimExitClamp");
+		camDistanceToPlayerProperty = serializedObject.FindProperty("camDistanceToPlayer");
 
-		AimClampProperty = serializedObject.FindProperty("AimClamp");
+		aimClampProperty = serializedObject.FindProperty("aimYClamp");
 
 
 	}
@@ -49,19 +53,21 @@ public class CameraManagerEditor : Editor
 		{
 			EditorGUI.indentLevel++;
 
-			CM.XSens = EditorGUILayout.FloatField(new GUIContent("X Sensitivity", "Horizontal Aim Sensitivity"), CM.XSens);
-			CM.YSens = EditorGUILayout.FloatField(new GUIContent("Y Sensitivity", "Vertical Aim Sensitivity"), CM.YSens);
-			EditorGUILayout.PropertyField(DistanceToPlayerProperty, new GUIContent("Distance To Player", "Min and Max distance between camera and player"));
+			CM.sens.x = EditorGUILayout.FloatField(new GUIContent("X Sensitivity", "Horizontal Aim Sensitivity"), CM.sens.x);
+			CM.sens.y = EditorGUILayout.FloatField(new GUIContent("Y Sensitivity", "Vertical Aim Sensitivity"), CM.sens.y);
+			EditorGUILayout.PropertyField(distanceToPlayerProperty, new GUIContent("Distance To Point", "Min and Max distance between camera and player"));
 			EditorGUILayout.PropertyField(YClampProperty, new GUIContent("Y Clamp", "Clamp the Y axis when in 3D Person"));
 
 			showDefaultAdvanced = EditorGUILayout.Foldout(showDefaultAdvanced, "Advanced Settings");
 			if (showDefaultAdvanced)
 			{
 				EditorGUI.indentLevel++;
-				CM.SprintCamOffset = EditorGUILayout.FloatField(new GUIContent("Sprint Cam Offset", "Amount to offset the cam when sprinting"), CM.SprintCamOffset);
-				CM.Smooth = EditorGUILayout.FloatField(new GUIContent("Smooth"), CM.Smooth);
-				EditorGUILayout.PropertyField(LayersToCheckProperty, new GUIContent("Layers To Collide", "Layers the cameara will collide with"));
-				CM.DistanceBeforeColliding = EditorGUILayout.Slider(new GUIContent("Collision Distance", "Distance to an object before colliding"), CM.DistanceBeforeColliding, 0f, 1f);
+
+				CM.smooth = EditorGUILayout.FloatField(new GUIContent("Smooth"), CM.smooth);
+				CM.sprintCamOffset = EditorGUILayout.FloatField(new GUIContent("Sprint Cam Offset", "Amount to offset the cam when sprinting"), CM.sprintCamOffset);
+				CM.distanceBeforeColliding = EditorGUILayout.Slider(new GUIContent("Collision Distance", "Distance to an object before colliding"), CM.distanceBeforeColliding, 0f, 1f);
+				EditorGUILayout.PropertyField(layersToCheckProperty, new GUIContent("Layers To Collide", "Layers the cameara will collide with"));
+				
 				EditorGUI.indentLevel--;
 			}
 
@@ -72,13 +78,30 @@ public class CameraManagerEditor : Editor
 		if (showAimViewSettings)
 		{
 			EditorGUI.indentLevel++;
-			CM.XAimSens = EditorGUILayout.FloatField(new GUIContent("X Sensitivity", "Horizontal Aim Sensitivity"), CM.XAimSens);
-			CM.YAimSens = EditorGUILayout.FloatField(new GUIContent("Y Sensitivity", "Vertical Aim Sensitivity"), CM.YAimSens);
-			CM.YOffsetOnAim = EditorGUILayout.Slider(new GUIContent("Y Offset On Aim", "Offset the camera by this amount along the y axis when aiming."),
-				CM.YOffsetOnAim, -1, 1);
-			EditorGUILayout.PropertyField(AimClampProperty, new GUIContent("Y Aim Clamp", "Clamp the Y axis when in Aim View"));
-			EditorGUILayout.PropertyField(AimExitClampProperty, new GUIContent("Y Aim Exit Clamp", "Clamp the Y axis when exiting Aim View"));
 
+			CM.aimSens.x = EditorGUILayout.FloatField(new GUIContent("X Sensitivity", "Horizontal Aim Sensitivity"), CM.aimSens.x);
+			CM.aimSens.y = EditorGUILayout.FloatField(new GUIContent("Y Sensitivity", "Vertical Aim Sensitivity"), CM.aimSens.y);
+			CM.aimDistanceToPlayer = EditorGUILayout.FloatField(new GUIContent("Aim Distance from point", "The distance to be from when the FollowPoint when aiming"), CM.aimDistanceToPlayer);
+			EditorGUILayout.PropertyField(aimClampProperty, new GUIContent("Y Aim Clamp", "Clamp the Y axis when in Aim View"));
+
+			EditorGUI.indentLevel--;
+		}
+
+		showDebugSettings = EditorGUILayout.Foldout(showDebugSettings, "Debug Settings");
+		if (showDebugSettings)
+		{
+			EditorGUI.indentLevel++;
+
+			CM.raycastDirection = EditorGUILayout.Toggle(new GUIContent("Show Direction Raycast", "Raycasts a line towards camera direction"), CM.raycastDirection);
+			if (CM.raycastDirection)
+			{
+				EditorGUI.indentLevel++;
+
+				CM.directionDistance = EditorGUILayout.FloatField(new GUIContent("Direction Raycast Length"), CM.directionDistance);
+				CM.directionColor = EditorGUILayout.ColorField(new GUIContent("Direction Raycast Color"), CM.directionColor);
+
+				EditorGUI.indentLevel--;
+			}
 			EditorGUI.indentLevel--;
 		}
 
@@ -87,7 +110,8 @@ public class CameraManagerEditor : Editor
 		{
 			EditorGUI.indentLevel++;
 
-			EditorGUILayout.PropertyField(CamDistanceToPlayerProperty, new GUIContent("Current Distance", "Camera distance to player."));
+			EditorGUILayout.PropertyField(camDistanceToPlayerProperty, new GUIContent("Current Distance", "Camera distance to player."));
+			EditorGUILayout.PropertyField(canMoveCamProperty, new GUIContent("canMove", "Weather the player can move the camera or not."));
 
 			EditorGUI.indentLevel--;
 		}

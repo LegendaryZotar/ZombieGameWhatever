@@ -7,7 +7,9 @@ using UnityEditor;
 public class GunEditor : Editor
 {
 	bool showGunSettings = true;
-	bool showProjectileSettings = false;
+	bool showAmmoSettings = true;
+	bool showProjectileSettings = true;
+
 	bool showOtherSettings = false;
 	bool showDebugSettings = false;
 
@@ -18,46 +20,44 @@ public class GunEditor : Editor
 		showGunSettings = EditorGUILayout.Foldout(showGunSettings, "Gun Settings");
 		if (showGunSettings)
 		{
-			EditorGUI.indentLevel = 1;
+			EditorGUI.indentLevel++;
 
-			gun.FireRate_Type = (W_Gun.FireRateTypes)EditorGUILayout.EnumPopup("FireRate Type", gun.FireRate_Type);
-			gun.FireRate = EditorGUILayout.FloatField(new GUIContent("FireRate", "Minimum time between each shot in seconds"), gun.FireRate);
-			gun.Fire_Point = (Transform)EditorGUILayout.ObjectField("Fire Point", gun.Fire_Point, typeof(Transform), true);
-            gun.Damage = EditorGUILayout.FloatField(new GUIContent("Damage", "Damage per shot"), gun.Damage);
-            gun.AmmoPerShot = EditorGUILayout.IntField(new GUIContent("AmmoPerShot", "Ammunition used per shot"), gun.AmmoPerShot);
-            gun.ClipSize = EditorGUILayout.IntField(new GUIContent("ClipSize", "Maximum bullets loaded"), gun.ClipSize);
-            gun.ReloadTime = EditorGUILayout.FloatField(new GUIContent("ReloadTime", "Time used for gun to reload in seconds"), gun.ReloadTime);
-			gun.Recoil = EditorGUILayout.FloatField(new GUIContent("Recoil"), gun.Recoil);
+			gun.fireRateType = (W_Gun.FireRateTypes)EditorGUILayout.EnumPopup("FireRate Type", gun.fireRateType);
+			gun.fireRate = EditorGUILayout.FloatField(new GUIContent("FireRate", "Minimum time between each shot in seconds"), gun.fireRate);
+            gun.reloadTime = EditorGUILayout.FloatField(new GUIContent("ReloadTime", "Time used for gun to reload in seconds"), gun.reloadTime);
+			gun.recoil = EditorGUILayout.FloatField(new GUIContent("Recoil"), gun.recoil);
+			gun.firePoint = (Transform)EditorGUILayout.ObjectField("Fire Point", gun.firePoint, typeof(Transform), true);
+
+            EditorGUI.indentLevel--;
+		}
+
+		showAmmoSettings = EditorGUILayout.Foldout(showAmmoSettings, "Ammo Settings");
+		if (showAmmoSettings)
+		{
+			EditorGUI.indentLevel++;
+
+            gun.clipSize = EditorGUILayout.IntField(new GUIContent("ClipSize", "Maximum bullets loaded"), gun.clipSize);
+            gun.ammoPerShot = EditorGUILayout.IntField(new GUIContent("AmmoPerShot", "Ammunition used per shot"), gun.ammoPerShot);
 
 
-            EditorGUI.indentLevel = 0;
+			EditorGUI.indentLevel--;
 		}
 
 		showProjectileSettings = EditorGUILayout.Foldout(showProjectileSettings, "Projectile Settings");
 		if (showProjectileSettings)
 		{
-			EditorGUI.indentLevel = 1;
+			EditorGUI.indentLevel++;
 
-			gun.Projectile_Force = EditorGUILayout.FloatField(new GUIContent("Projectile Force", "Projectile force when shot"), gun.Projectile_Force);
-			gun.Projectile_Range = EditorGUILayout.FloatField("Projectile Range", gun.Projectile_Range);
-			gun.Projectile_Type = (W_Gun.ProjectileTypes)EditorGUILayout.EnumPopup("Projectile Type", gun.Projectile_Type);
-			EditorGUI.indentLevel = 2;
-			switch (gun.Projectile_Type)
-			{
-				case W_Gun.ProjectileTypes.Raycast:
+			gun.projectType = (W_Gun.ProjectileTypes)EditorGUILayout.EnumPopup("Projectile Type", gun.projectType);
 
-					break;
-				case W_Gun.ProjectileTypes.Prefab:
-					gun.prefab_projectile = (GameObject)EditorGUILayout.ObjectField("Projectile Prefab", gun.prefab_projectile, typeof(GameObject), true);
-					gun.Parent = EditorGUILayout.Toggle("Parent", gun.Parent);
-					if (gun.Parent)
-						gun.prefab_parent = (Transform)EditorGUILayout.ObjectField("Parent Transform", gun.prefab_parent, typeof(Transform), true);
-					break;
-				default:
-					break;
-			}
-			EditorGUI.indentLevel = 1;
-			EditorGUI.indentLevel = 0;
+			if(gun.projectType == W_Gun.ProjectileTypes.Prefab)
+				gun.projectilePrefab = (GameObject)EditorGUILayout.ObjectField("Projectile Prefab", gun.projectilePrefab, typeof(GameObject), true);
+
+			gun.projectileForce = EditorGUILayout.FloatField(new GUIContent("Projectile Force", "Projectile force when shot"), gun.projectileForce);
+			gun.projectileRange = EditorGUILayout.FloatField("Projectile Range", gun.projectileRange);
+            gun.damage = EditorGUILayout.FloatField(new GUIContent("Damage", "Damage per shot"), gun.damage);
+
+			EditorGUI.indentLevel--;
 			if (GUI.changed)
 				SceneView.RepaintAll();
 		}
@@ -65,25 +65,32 @@ public class GunEditor : Editor
 		showOtherSettings = EditorGUILayout.Foldout(showOtherSettings, "Other Settings");
 		if (showOtherSettings)
 		{
-			EditorGUI.indentLevel = 1;
-			gun.CustomCrossHair = EditorGUILayout.Toggle("Custom Crosshair", gun.CustomCrossHair);
-			if (gun.CustomCrossHair)
+			EditorGUI.indentLevel++;
+
+			gun.customCrossHairBool = EditorGUILayout.Toggle("Custom Crosshair", gun.customCrossHairBool);
+			if (gun.customCrossHairBool)
 			{
-				gun.CrossHair = (Sprite)EditorGUILayout.ObjectField("Crosshair Sprite", gun.CrossHair, typeof(Sprite), true);
+				EditorGUI.indentLevel++;
+
+				gun.customCrossHair.crossHair = (Sprite)EditorGUILayout.ObjectField("Crosshair Sprite", gun.customCrossHair.crossHair, typeof(Sprite), true);
+				gun.customCrossHair.tint = EditorGUILayout.ColorField("Crosshair Tint", gun.customCrossHair.tint);
+
+				EditorGUI.indentLevel--;
 			}
-			EditorGUI.indentLevel = 0;
+
+			EditorGUI.indentLevel--;
 		}
 
 		showDebugSettings = EditorGUILayout.Foldout(showDebugSettings, "Debug Settings");
 		if (showDebugSettings)
 		{
-			if (gun.Projectile_Type == W_Gun.ProjectileTypes.Raycast)
+			gun.raycastDirection = EditorGUILayout.Toggle(new GUIContent("Show Range Raycast"), gun.raycastDirection);
+			if (gun.raycastDirection)
 			{
 				EditorGUI.indentLevel++;
-				gun.raycast_show = EditorGUILayout.Toggle(new GUIContent("Show Raycast", "Show raycast (in inspector)"), gun.raycast_show);
-				EditorGUI.BeginDisabledGroup(!gun.raycast_show);
-				gun.raycast_Color = EditorGUILayout.ColorField("Raycast Color", gun.raycast_Color);
-				EditorGUI.EndDisabledGroup();
+
+				gun.directionColor = EditorGUILayout.ColorField(new GUIContent("Range Raycast Color"), gun.directionColor);
+
 				EditorGUI.indentLevel--;
 			}
 		}
