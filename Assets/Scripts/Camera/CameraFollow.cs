@@ -53,6 +53,7 @@ public class CameraFollow : MonoBehaviour
 
             Quaternion localRotation = Quaternion.Euler(rotX, PM.player.transform.localEulerAngles.y, 0.0f);
             transform.rotation = localRotation;
+            
         }
     }
 

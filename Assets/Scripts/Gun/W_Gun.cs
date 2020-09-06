@@ -134,9 +134,9 @@ public class W_Gun : MonoBehaviour
         if (Physics.Raycast(firePoint.position, firePoint.TransformDirection(Vector3.forward), out hit, projectileRange))
         {
             Debug.Log(hit.transform.name);
-            if (hit.transform.GetComponent<Z_Controller>())
+            if (hit.transform.GetComponent<Zombie>())
             {
-                hit.transform.GetComponent<Z_Controller>().Damage(damage);
+                hit.transform.GetComponent<Zombie>().Damage(damage);
 
                 //Add a hit effect later on
             }
